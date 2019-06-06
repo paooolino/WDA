@@ -2,14 +2,56 @@
 namespace Wda;
 
 class Wda {
-  private $root;
-  private $AppName;
+  //private $root;
+  //private $AppName;
   
-  public function __construct($root, $AppName) {
-    $this->root = $root;
-    $this->AppName = $AppName;
+  //public function __construct($root, $AppName) {
+    //$this->root = $root;
+    //$this->AppName = $AppName;
+  //}
+  
+  public function __construct() {
   }
   
+  public function getCodeComposerJson() {
+    return <<<END_OF_CODE
+{
+    "require": {
+        "slim/slim": "^3.12",
+        "slim/php-view": "^2.2",
+        "ifsnop/mysqldump-php": "^2.7"
+    },
+    "autoload": {
+      "psr-4": {
+        "WebApp\\": "WebApp/src/"
+      }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8"
+    }
+}
+END_OF_CODE;
+  }
+  
+  public function getCodeHtaccess() {
+    return <<<END_OF_CODE
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]
+END_OF_CODE;
+  }
+  
+  public function getCodeGitignore() {
+    return <<<END_OF_CODE
+/vendor/
+END_OF_CODE;
+  }
+  
+  public function getCodeDependenciesService($ini) {
+    
+  }
+  /*
   public function createFile($dir, $filename, $code, $force=true) {
     $dir = $this->root . '/' . $this->AppName . $dir;
 
@@ -59,4 +101,5 @@ class Wda {
   
   public function writeBootstrap() {
   }
+  */
 }
