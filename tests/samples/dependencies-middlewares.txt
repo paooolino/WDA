@@ -1,0 +1,7 @@
+$container['WebApp\Middleware\AppInit'] = function($c) {
+  return new WebApp\Middleware\AppInit($c->app);
+};
+
+$container['WebApp\Middleware\Auth'] = function($c) {
+  return new WebApp\Middleware\Auth();
+};

@@ -1,0 +1,11 @@
+$container['auth'] = function($c) {
+  return new WebApp\Auth($c->db);
+};
+
+$container['service2'] = function($c) {
+  return new WebApp\Service2($c->dep1, $c->dep2);
+};
+
+$container['service3'] = function($c) {
+  return new WebApp\Service3();
+};

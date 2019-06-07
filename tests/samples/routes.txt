@@ -1,0 +1,3 @@
+$app->get('/', 'WebApp\Controller\HomeController')->setName('HOME');
+$app->get('/login', 'WebApp\Controller\LoginController')->setName('LOGIN');
+$app->post('/login', 'WebApp\Controller\Login_actionController')->setName('LOGIN_ACTION');

@@ -1,0 +1,11 @@
+$container['WebApp\Controller\HomeController'] = function($c) {
+  return new WebApp\Controller\HomeController($c->view, $c->app);
+};
+
+$container['WebApp\Controller\LoginController'] = function($c) {
+  return new WebApp\Controller\LoginController($c->view, $c->app);
+};
+
+$container['WebApp\Controller\Login_actionController'] = function($c) {
+  return new WebApp\Controller\Login_actionController($c->auth, $c->User_by_username_passwordModel, $c->router, $c->app);
+};

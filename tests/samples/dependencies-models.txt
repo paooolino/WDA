@@ -1,0 +1,7 @@
+$container['WebApp\Model\User_by_username_passwordModel'] = function($c) {
+  return new WebApp\Model\User_by_username_passwordModel($c->db);
+};
+
+$container['WebApp\Model\MessageModel'] = function($c) {
+  return new WebApp\Model\MessageModel();
+};
