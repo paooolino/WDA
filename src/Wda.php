@@ -181,6 +181,7 @@ END_OF_CODE;
     $config = $this->get_ini_section("CONTROLLERS");
     
     $code = "";
+
     foreach ($config as $route_name => $route_config) {
       $rpath = $route_config["path"];
       $rClassName = 'WebApp\\Controller\\' . ucfirst(strtolower($route_name)) . 'Controller';
@@ -209,7 +210,7 @@ END_OF_CODE;
         return true;
       }
     );
-    
+
     // trova la posizione della sezione voluta e quella della sezione successiva
     $section_pos = -1;
     $next_pos = -1;
@@ -230,7 +231,26 @@ END_OF_CODE;
     if ($section_pos > -1 && $next_pos == -1)
       return array_slice($this->config, $section_pos+1);    
     if ($section_pos > -1 && $next_pos > -1)
-      return array_slice($this->config, $section_pos+1, $next_pos);
+      return array_slice($this->config, $section_pos+1, ($next_pos - $section_pos) - 1);
+  }
+  
+  public function commentline($s) {
+    $code = "";
+    $code .= "\r\n";
+    $code .= "//" . "\r\n";
+    $code .= "// " . $s . "\r\n";
+    $code .= "//" . "\r\n";
+    
+    return $code;
+  }
+  
+  public function phpFile($code) {
+    return "<?php\r\n" . $code;
+  }
+  
+  public function makedir($dir) {
+    if (!is_dir($dir))
+      mkdir($dir, 0777, true);  
   }
   
   private function sToArr($s) {
