@@ -19,38 +19,19 @@ class Wda {
   }
   
   public function getCodeComposerJson() {
-    return <<<END_OF_CODE
-{
-    "require": {
-        "slim/slim": "^3.12",
-        "slim/php-view": "^2.2",
-        "ifsnop/mysqldump-php": "^2.7"
-    },
-    "autoload": {
-      "psr-4": {
-        "WebApp\\\\": "WebApp/src/"
-      }
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^8"
-    }
-}
-END_OF_CODE;
+    return $this->template("composer.json");
   }
   
   public function getCodeHtaccess() {
-    return <<<END_OF_CODE
-RewriteEngine On
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ index.php [QSA,L]
-END_OF_CODE;
+    return $this->template(".htaccess");
   }
   
   public function getCodeGitignore() {
-    return <<<END_OF_CODE
-/vendor/
-END_OF_CODE;
+    return $this->template(".gitignore");
+  }
+  
+  public function getIndexCode() {
+    return $this->template("index.php");
   }
   
   public function getCodeDependenciesServices() {
@@ -179,7 +160,7 @@ END_OF_CODE;
   
   public function getCodeRoutesPhp() {  
     $config = $this->get_ini_section("CONTROLLERS");
-    
+
     $code = "";
 
     foreach ($config as $route_name => $route_config) {
@@ -194,6 +175,49 @@ END_OF_CODE;
   
   public function getCodeSettingsPhp() {
     return $this->template("settings.php");
+  }
+  
+  public function getCodeMiddlewareAppInit() {
+    return $this->template("Middleware_AppInit.php");
+  }
+  
+  public function getCodeMiddlewareAuth() {
+    return $this->template("Middleware_Auth.php");
+  }
+  
+  public function getCodeControllers() {
+    $controllers = [
+      "pages" => [],
+      "actions" => []
+    ];
+
+    $config = $this->get_ini_section("CONTROLLERS");
+    foreach ($config as $route_name => $route_config) {
+      $classname = ucfirst(strtolower($route_name)) . 'Controller';
+      if (isset($route_config["path"])) {
+        $controllers["pages"][] = [
+          "classname" => $classname,
+          "code" => $this->getCodeControllerTemplate($route_config)
+        ];
+      } else {
+        $controllers["actions"][] = [
+          "classname" => $classname,
+          "code" => $this->getCodeControllerAction($route_config)
+        ];
+      }
+    }
+    
+    return $controllers;
+  }
+  
+  private function getCodeControllerTemplate($route_config) {
+    $code = $this->template("ControllerTemplate.php");
+    return $code;
+  }
+  
+  private function getCodeControllerAction($route_config) {
+    $code = $this->template("ControllerAction.php");
+    return $code;
   }
   
   private function get_ini_section($section) {
@@ -221,10 +245,11 @@ END_OF_CODE;
           $section_pos = $p["pos"];
         }
       } else {
-        $next_pos = $p["pos"];
+        if ($next_pos == -1)
+          $next_pos = $p["pos"];
       }
     }
-    
+
     // ritorna l'opportuno slice dell'array di configurazione
     if ($section_pos == -1) 
       return [];  

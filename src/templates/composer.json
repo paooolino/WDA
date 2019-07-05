@@ -6,7 +6,7 @@
     },
     "autoload": {
       "psr-4": {
-        "WebApp\\": "WebApp/src/"
+        "WebApp\\": "app/src/"
       }
     },
     "require-dev": {
