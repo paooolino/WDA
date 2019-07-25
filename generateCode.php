@@ -33,7 +33,9 @@ $wda->makedir("app");
 // dependencies.php
 file_put_contents("app/dependencies.php", 
   $wda->phpFile(
-    $wda->commentLine("Services")
+    $wda->getDefaultDependenciesServices()
+    
+    . $wda->commentLine("Services")
     . $wda->getCodeDependenciesServices()
     
     . $wda->commentLine("Middlewares")
@@ -74,6 +76,12 @@ foreach ($controllers["pages"] as $c) {
   file_put_contents("app/src/Controller/" . $c["classname"] . ".php", $c["code"]);
 }
 
+// Services
+$services = $wda->getCodeServices();
+foreach ($services as $s) {
+  file_put_contents("app/src/" . $s["classname"] . ".php", $s["code"]);
+}
+
 /*
 $wda->writeBootstrap();
 
@@ -96,8 +104,6 @@ $wda->generateRoutes($config["routes"]);
 $wda->generateControllers($config["routes"]);
 
 $wda->generateMiddlewares();
-
-$wda->generateServices();
 
 $wda->generateTemplates();
 

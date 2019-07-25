@@ -34,12 +34,16 @@ class Wda {
     return $this->template("index.php");
   }
   
+  public function getDefaultDependenciesServices() {
+    return $this->template("getDefaultDependenciesServices.tpl");
+  }
+  
   public function getCodeDependenciesServices() {
     $config = $this->get_ini_section("SERVICES");
     
     $codearr = [];
     foreach ($config as $item => $item_config) {
-      $class_name = ucfirst($item);
+      $class_name = ucfirst($item) . "Service";
       $deps = [];
       if (isset($item_config["deps"])) {
         $deps = array_map(function($dep) {
@@ -194,10 +198,10 @@ END_OF_CODE;
     $config = $this->get_ini_section("CONTROLLERS");
     foreach ($config as $route_name => $route_config) {
       $classname = ucfirst(strtolower($route_name)) . 'Controller';
-      if (isset($route_config["path"])) {
+      if (isset($route_config["template"])) {
         $controllers["pages"][] = [
           "classname" => $classname,
-          "code" => $this->getCodeControllerTemplate($route_config)
+          "code" => $this->getCodeControllerTemplate($classname, $route_config)
         ];
       } else {
         $controllers["actions"][] = [
@@ -210,8 +214,70 @@ END_OF_CODE;
     return $controllers;
   }
   
-  private function getCodeControllerTemplate($route_config) {
-    $code = $this->template("ControllerTemplate.php");
+  public function getCodeServices() {
+    $services = [];
+
+    $config = $this->get_ini_section("SERVICES");
+    foreach ($config as $route_name => $route_config) {
+      $classname = ucfirst(strtolower($route_name)) . 'Service';
+      $services[] = [
+        "classname" => $classname,
+        "code" => $this->getCodeService($classname, $route_config)
+      ];
+    }
+    
+    return $services;
+  }
+  
+  private function populateTemplate($tpl, $data) {
+    // populate simple tag with data
+    foreach ($data as $k => $v) {
+      // if a string, try the tag substitution
+      if (gettype($v) == "string" || gettype($v) == "integer") {
+        $tpl = str_replace("{{".$k."}}", $v, $tpl);
+      }
+    }
+    return $tpl;
+  }
+  
+  private function getCodeControllerTemplate($classname, $route_config) {
+    $deps_members = "";
+    $deps_assign = "";
+    $deps_list = "";
+    $models_content = "";
+    $models_vars = "";
+    $viewmodels_content = "";
+    
+    $code = $this->populateTemplate(
+      $this->template("ControllerTemplate.php"),
+      [
+        "classname" => $classname,
+        "templatename" => $route_config["template"],
+        "deps_members" => $deps_members,
+        "deps_assign" => $deps_assign,
+        "deps_list" => $deps_list,
+        "models_content" => $models_content,
+        "models_vars" => $models_vars,
+        "viewmodels_content" => $viewmodels_content
+      ]
+    );
+    return $code;
+  }
+  
+  private function getCodeService($classname, $route_config) {
+    $deps_members = "";
+    $deps_assign = "";
+    $deps_list = "";
+    
+    $code = $this->populateTemplate(
+      $this->template("ServiceTemplate.php"),
+      [
+        "classname" => $classname,
+        "deps_members" => $deps_members,
+        "deps_assign" => $deps_assign,
+        "deps_list" => $deps_list
+      ]
+    );
     return $code;
   }
   
