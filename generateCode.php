@@ -33,12 +33,12 @@ $wda->makedir("app");
 // dependencies.php
 file_put_contents("app/dependencies.php", 
   $wda->phpFile(
-    $wda->getDefaultDependenciesServices()
-    
-    . $wda->commentLine("Services")
+    $wda->commentLine("Services")
+    . $wda->getDefaultDependenciesServices()
     . $wda->getCodeDependenciesServices()
     
     . $wda->commentLine("Middlewares")
+    . $wda->getDefaultDependenciesMiddlewares()
     . $wda->getCodeDependenciesMiddlewares()
     
     . $wda->commentLine("Controllers")
@@ -77,10 +77,37 @@ foreach ($controllers["pages"] as $c) {
 }
 
 // Services
+$appServiceCode = $wda->getAppServiceCode();
+file_put_contents("app/src/AppService.php", $appServiceCode);
+
 $services = $wda->getCodeServices();
 foreach ($services as $s) {
   file_put_contents("app/src/" . $s["classname"] . ".php", $s["code"]);
 }
+
+// templates
+$templates = $wda->getCodeTemplates();
+foreach ($templates as $t) {
+  $tpl_source_dir = 'templates/default/src'; 
+  $tpl_dest_dir = 'templates/default'; 
+  $filename = $t["name"] . '.php';
+  if (!file_exists($tpl_source_dir . '/' . $filename)) {
+    $wda->create_file($tpl_source_dir, $filename, $t["code"]);
+  }
+  $wda->compile_template($tpl_source_dir, $tpl_dest_dir, $filename, true);
+}
+
+// css
+$dir = 'templates/default/css';
+$filename = 'style.css';
+$code = $wda->getCssCode();
+$wda->create_file($dir, $filename, $code);
+
+// js
+$dir = 'templates/default/js';
+$filename = 'scripts.js';
+$code = $wda->getJsCode();
+$wda->create_file($dir, $filename, $code);
 
 /*
 $wda->writeBootstrap();
@@ -95,19 +122,11 @@ $wda->writeApp();
 
 $wda->writeDb();
 
-$wda->writeCss();
-
-$wda->writeJs();
-
 $wda->generateRoutes($config["routes"]);
 
 $wda->generateControllers($config["routes"]);
 
 $wda->generateMiddlewares();
-
-$wda->generateTemplates();
-
-$wda->copyDeveloperAssistant();
 
 $wda->writeDatabaseDump();
 */

@@ -18,7 +18,7 @@ class {{classname}} {
   public function __invoke($request, $response, $args) {  
 {{models_content}}    
     
-    return $this->view->render($response, '{{templatename}}', [
+    return $this->view->render($response, '{{templatename}}.php', [
       "templateUrl" => $this->app->templateUrl,
 {{models_vars}}
     ]);
