@@ -73,7 +73,13 @@ file_put_contents("app/src/Middleware/Auth.php", $wda->getCodeMiddlewareAuth());
 // Controllers
 $controllers = $wda->getCodeControllers();
 foreach ($controllers["pages"] as $c) {
-  file_put_contents("app/src/Controller/" . $c["classname"] . ".php", $c["code"]);
+  $wda->create_file("app/src/Controller/", $c["classname"] . ".php", $c["code"]);
+}
+
+// Models
+$models = $wda->getCodeModels();
+foreach ($models as $m) {
+  $wda->create_file("app/src/Model", $m["classname"] . ".php", $m["code"]);
 }
 
 // Services
@@ -82,7 +88,7 @@ file_put_contents("app/src/AppService.php", $appServiceCode);
 
 $services = $wda->getCodeServices();
 foreach ($services as $s) {
-  file_put_contents("app/src/" . $s["classname"] . ".php", $s["code"]);
+  $wda->create_file("app/src/", $s["classname"] . ".php", $s["code"]);
 }
 
 // templates
@@ -94,6 +100,14 @@ foreach ($templates as $t) {
   if (!file_exists($tpl_source_dir . '/' . $filename)) {
     $wda->create_file($tpl_source_dir, $filename, $t["code"]);
   }
+  
+  // aggiorna desc e lista variabili nel source
+  $wda->replace_in_file($tpl_source_dir . '/' . $filename, '/@desc.*/', '@desc ' . $t["desc"]);
+  $vars_lines = implode("\r\n", array_map(function($v) {
+    return ' *  - ' . $v;
+  }, $t["vars"]));
+  $wda->replace_in_file($tpl_source_dir . '/' . $filename, '/vars:.*\*\//s', "vars:\r\n" . $vars_lines . "\r\n */");
+  
   $wda->compile_template($tpl_source_dir, $tpl_dest_dir, $filename, true);
 }
 
@@ -101,13 +115,13 @@ foreach ($templates as $t) {
 $dir = 'templates/default/css';
 $filename = 'style.css';
 $code = $wda->getCssCode();
-$wda->create_file($dir, $filename, $code);
+$wda->create_file($dir, $filename, $code, false);
 
 // js
 $dir = 'templates/default/js';
 $filename = 'scripts.js';
 $code = $wda->getJsCode();
-$wda->create_file($dir, $filename, $code);
+$wda->create_file($dir, $filename, $code, false);
 
 /*
 $wda->writeBootstrap();

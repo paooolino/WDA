@@ -147,43 +147,50 @@ END_OF_CODE;
     return implode("\r\n\r\n", $codearr);
   }
   
+  private function get_deps_controller($route_config) {
+    $deps = [];
+    
+    // dipendenze implicite
+    //  app: sempre
+    //  view: se si tratta di un controller-page
+    //  router: se si tratta di un controller-action
+    $deps[] = 'app';
+    if (isset($route_config["template"])) {
+      $deps[] = 'view';
+    } else {
+      $deps[] = 'router';
+    }
+    
+    // dipendenze esplicite
+    if (isset($route_config["deps"])) {
+      $deps = array_merge($deps, $this->sToArr($route_config["deps"]));
+    }
+    
+    // models are dependencies themselves
+    if (isset($route_config["models"])) {
+      $deps = array_merge($deps, array_map(function($model) {
+        return ucfirst(trim($model)) . "Model";
+      }, explode(",", $route_config["models"])));
+    }
+    
+    return $deps;
+  }
+  
   public function getCodeDependenciesControllers() {
     $config = $this->get_ini_section("CONTROLLERS");
     
     $codearr = [];
     foreach ($config as $item => $item_config) {
       $class_name = ucfirst(strtolower($item)) . 'Controller';
-      $deps = [];
-      if (isset($item_config["deps"])) {
-        $deps = array_map(function($dep) {
-          return '$c->' . $dep;
-        }, $this->sToArr($item_config["deps"]));
-      }
-      
-      if (isset($item_config["models"])) {
-        // models are dependencies themselves
-        $deps = array_merge($deps, array_map(function($model) {
-          return '$c->' . ucfirst(trim($model)) . "Model";
-        }, explode(",", $item_config["models"])));
-      }
-  
-      // se c'è un template, aggiunge automaticamente la dipendenza dalla view
-      // se c'è la view passo anche app, serve per recuperare la templateUrl
-      // se non lo è, passo router che serve sicuramente per il redirect
-      // passo sempre anche app, può includere funzioni di utilità da usare anche nelle action.
-      if (isset($item_config["template"])) {
-        $deps[] = '$c->view';
-        $deps[] = '$c->app';
-      } else {
-        $deps[] = '$c->router';
-        $deps[] = '$c->app';
-      }
-  
-      $deps = implode(", ", $deps);
+      $deps = $this->get_deps_controller($item_config);
+
+      $deps_list = $this->getDepsList(array_map(function($d) {
+        return 'c->' . $d;
+      }, $deps));
       
       $codearr[] = <<<END_OF_CODE
 \$container['WebApp\Controller\\$class_name'] = function(\$c) {
-  return new WebApp\Controller\\$class_name($deps);
+  return new WebApp\Controller\\$class_name($deps_list);
 };
 END_OF_CODE;
     }
@@ -206,7 +213,7 @@ END_OF_CODE;
       $deps = implode(", ", $deps);
       
       $codearr[] = <<<END_OF_CODE
-\$container['WebApp\Model\\$class_name'] = function(\$c) {
+\$container['$class_name'] = function(\$c) {
   return new WebApp\Model\\$class_name($deps);
 };
 END_OF_CODE;
@@ -262,7 +269,7 @@ END_OF_CODE;
       if (isset($route_config["template"])) {
         $controllers["pages"][] = [
           "classname" => $classname,
-          "code" => $this->getCodeControllerTemplate($classname, $route_config)
+          "code" => $this->getCodeControllerPage($classname, $route_config)
         ];
       } else {
         $controllers["actions"][] = [
@@ -290,6 +297,21 @@ END_OF_CODE;
     return $services;
   }
   
+  public function getCodeModels() {
+    $models = [];
+
+    $config = $this->get_ini_section("MODELS");
+    foreach ($config as $model_name => $model_config) {
+      $classname = ucfirst(strtolower($model_name)) . 'Model';
+      $models[] = [
+        "classname" => $classname,
+        "code" => $this->getCodeModel($classname, $model_config)
+      ];
+    }
+    
+    return $models;
+  }
+  
   public function getCodeTemplates() {
     $templates = [];
 
@@ -297,9 +319,22 @@ END_OF_CODE;
     foreach ($config as $route_name => $route_config) {
       if (isset($route_config["template"])) {
         $name = $route_config["template"];
+        $desc = $route_config["desc"] ?? "";
+        $models_vars = ['$templateUrl'];
+        if (isset($route_config["models"])) {
+          $models_vars = array_merge(
+            $models_vars,
+            array_map(function($model) {
+              $m = trim($model);
+              return '$' . $m;
+            }, explode(",", $route_config["models"]))
+          );
+        }
         $templates[] = [
           "name" => $name,
-          "code" => $this->getCodeTemplate($name)
+          "desc" => $desc,
+          "code" => $this->getCodeTemplate($name),
+          "vars" => $models_vars
         ];
       }
     }
@@ -307,12 +342,19 @@ END_OF_CODE;
     return $templates;
   }
   
+  public function replace_in_file($filepath, $regex, $newvalue) {
+    $tpl = file_get_contents($filepath);
+    $tpl = preg_replace($regex, $newvalue, $tpl);
+    file_put_contents($filepath, $tpl);
+  }
+  
   public function compile_template($src, $dest, $filename, $mainTemplate=false) {
+    // carica il template source
     $tpl = file_get_contents($src . '/' . $filename);
     
+    // compila i tag
     $tags = [];
     preg_match_all("/{{(.*?)}}/", $tpl, $tags);
-    
     for ($i = 0; $i < count($tags[0]); $i++) {
       $tagname = $tags[1][$i];
       
@@ -329,6 +371,8 @@ END_OF_CODE;
         : "<?php require __DIR__ . '/' . '$subfilename'; ?>";
       $tpl = str_replace("{{".$tagname."}}", $tagcode, $tpl);
     }
+
+    // crea il file
     $this->create_file($dest, $filename, $tpl);
   }
   
@@ -363,17 +407,74 @@ END_OF_CODE;
     return implode(", ", array_map(function($d) { return '$' . $d; }, $deps));
   }
   
-  private function getCodeControllerTemplate($classname, $route_config) {
-    $deps = [];
-    if (isset($route_config["deps"])) {
-      $deps = array_map("trim", explode(",", $route_config["deps"]));
+  private function getModelsContent($route_config) {
+    $html = "";
+    
+    $models = [];
+    if (isset($route_config["models"])) {
+      $models = array_merge($models, array_map(function($model) {
+        $m = trim($model);
+        return '    $' . $m . ' = $this->getdata_' . $m . 'Model($request, $args);';
+      }, explode(",", $route_config["models"])));
     }
+    $html = implode("\r\n", $models);
+    
+    return $html;
+  }
+  
+  private function getModelsVars($route_config) {
+    $html = "";
+    
+    $models = [];
+    if (isset($route_config["models"])) {
+      $models = array_merge($models, array_map(function($model) {
+        $m = trim($model);
+        return '        "' . $m . '" => $' . $m;
+      }, explode(",", $route_config["models"])));
+    }
+    $html = implode(",\r\n", $models);
+    
+    return $html;
+  }
+  
+  private function getViewmodelsContent($route_config) {
+    $html = "";
+    
+    $models = [];
+    if (isset($route_config["models"])) {
+      $models = array_merge($models, array_map(function($model) {
+        $m = trim($model);
+        $model_class = ucfirst($m) . "Model";
+        return <<<END_OF_CODE
+  private function getdata_${m}Model(\$request, \$args) {
+    /* === DEVELOPER BEGIN */
+    
+    // based on request, get data from the pure model.
+    // \$var = \$request->getParsedBody()['var']; 
+    // \$var = \$request->getQueryParams()['var']; 
+    // return \$this->${model_class}->get(\$var);
+
+    return \$this->${model_class}->get();
+    
+    /* === DEVELOPER END */
+  }
+END_OF_CODE;
+      }, explode(",", $route_config["models"])));
+    }
+    $html = implode("\r\n\r\n", $models);
+    
+    return $html;
+  }
+  
+  private function getCodeControllerPage($classname, $route_config) {
+    $deps = $this->get_deps_controller($route_config);
+        
     $deps_members = $this->getDepsMembers($deps);
     $deps_assign = $this->getDepsAssign($deps);
     $deps_list = $this->getDepsList($deps);
-    $models_content = "";
-    $models_vars = "";
-    $viewmodels_content = "";
+    $models_content = $this->getModelsContent($route_config);
+    $models_vars = $this->getModelsVars($route_config);
+    $viewmodels_content = $this->getViewmodelsContent($route_config);
     
     $code = $this->populateTemplate(
       $this->template("ControllerTemplate.php"),
@@ -398,6 +499,23 @@ END_OF_CODE;
     
     $code = $this->populateTemplate(
       $this->template("ServiceTemplate.php"),
+      [
+        "classname" => $classname,
+        "deps_members" => $deps_members,
+        "deps_assign" => $deps_assign,
+        "deps_list" => $deps_list
+      ]
+    );
+    return $code;
+  }
+  
+  private function getCodeModel($classname, $model_config) {
+    $deps_members = "";
+    $deps_assign = "";
+    $deps_list = "";
+    
+    $code = $this->populateTemplate(
+      $this->template("ModelTemplate.php"),
       [
         "classname" => $classname,
         "deps_members" => $deps_members,

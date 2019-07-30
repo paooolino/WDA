@@ -2,6 +2,10 @@
 ini_set('display_errors', 0);
 
 if (isset($_GET["f"])) {
+  $ext = (new SplFileInfo($_GET["f"]))->getExtension();
+  $acemode = $ext;
+  if ($ext == "js") $acemode = "javascript";
+  
   if (isset($_POST["value"])) {
     $result = file_put_contents($_GET["f"], $_POST["value"]);
     echo json_encode(["result" => !($result === false)]);
@@ -36,7 +40,7 @@ if (isset($_GET["f"])) {
   <script>
       var editor = ace.edit("editor");
       editor.setTheme("ace/theme/monokai");
-      editor.session.setMode("ace/mode/php");
+      editor.session.setMode("ace/mode/<?php echo $acemode; ?>");
       editor.setOptions({
         fontSize: "14pt",
         tabSize: 2,

@@ -1,10 +1,10 @@
 <?php
-/* === DEVELOPER BEGIN */
 /**
- *  @desc $desc
+ *  @desc
  *
  *  @status 0 
+ *
+ *  vars:
  */
-/* === DEVELOPER END */
 ?>
 Please edit the template source file in /templates/default/src/{{name}}

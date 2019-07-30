@@ -23,5 +23,6 @@ class {{classname}} {
 {{models_vars}}
     ]);
   }
+  
 {{viewmodels_content}}
 }
