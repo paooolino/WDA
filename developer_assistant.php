@@ -92,7 +92,7 @@ $config = $wda->get_ini_section("CONTROLLERS");
 $config_models = $wda->get_ini_section("MODELS");
 $config_services = $wda->get_ini_section("SERVICES");
 
-function get_file_infos($dir, $file) {
+function get_file_infos($dir, $file) {  
   if (is_file($dir . "/" . $file)) {
     $lines = file($dir . "/" . $file);
     $result = [];
@@ -153,6 +153,8 @@ $jss = array_filter(array_map(function($item) {
   return get_file_infos(__DIR__ . '/../templates/default/js', $item);
 }, scandir(__DIR__ . '/../templates/default/js')));
 
+$config_link = '?f=' . rawurlencode(__DIR__ . '/../config/config.ini');        
+          
 // per ogni model, template elenca le route che li usano
 $models_routes = [];
 $templates_routes = [];
@@ -202,6 +204,7 @@ foreach ($config as $route_name => $route_config) {
         <th>Models</th>
         <th>Templates</th>
         <th>Services</th>
+        <th>Config</th>
       </tr>
     </thead>
     <tbody>
@@ -280,6 +283,11 @@ foreach ($config as $route_name => $route_config) {
               echo html_item($item);
             }
             ?>
+          </ul>
+        </td>
+        <td valign="top">
+          <ul>
+            <a target="_config.ini" href="<?php echo $config_link; ?>" title="">config.ini</a>
           </ul>
         </td>
       </tr>
