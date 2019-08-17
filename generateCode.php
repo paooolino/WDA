@@ -15,6 +15,9 @@ $wda->loadConfigFromString($ini);
 // write files:
 //
 
+// change base directory
+chdir($argv[2]);
+
 //composer.json.
 file_put_contents("composer.json", $wda->getCodeComposerJson());
 
