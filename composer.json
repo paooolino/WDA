@@ -1,4 +1,13 @@
 {
+    "name": "paooolino/wda",
+    "authors": [
+        {
+            "name": "paooolino",
+            "email": "paooolino@gmail.com"
+        }
+    ],
+    "homepage": "https://github.com/paooolino/WDA",
+    "license": "Apache-2.0",
     "require": {
         "ifsnop/mysqldump-php": "^2.7"
     },
