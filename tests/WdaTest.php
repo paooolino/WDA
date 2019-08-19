@@ -35,10 +35,23 @@ final class WdaTest extends TestCase {
     $this->rrmdir($this->dir);
   }
   
+  // utilità per ricavare la risposta dato un path
+  private function get($path) {
+    // mock the index.php and run app to analyze responses
+    $env = \Slim\Http\Environment::mock([
+      'REQUEST_METHOD' => 'GET',
+      'REQUEST_URI' => $path
+    ]);
+    $request = \Slim\Http\Request::createFromEnvironment($env);
+    $response = new \Slim\Http\Response();
+    $response = $this->app->process($request, $response);
+    return $response->getBody()->__toString();
+  }
+  
   protected function setUp():void {
     // chiamare il prepareTest
     if (file_exists($this->dir)) {
-      echo "Skipping installation. Please remove " . $this->dir . " directory if you want a complete test.";
+      // do nothing
     } else {
       $this->prepareTest();
     }
@@ -53,17 +66,18 @@ final class WdaTest extends TestCase {
   }
   
   public function testHomeResponds() {
-    // mock the index.php and run app to analyze responses
-    $env = \Slim\Http\Environment::mock([
-      'REQUEST_METHOD' => 'GET',
-      'REQUEST_URI' => '/'
-    ]);
-    $request = \Slim\Http\Request::createFromEnvironment($env);
-    $response = new \Slim\Http\Response();
-    $response = $this->app->process($request, $response);
-    
     $expected = 'Please edit the template source file in /templates/default/src/home';
-    $this->assertStringContainsString($expected, $response->getBody()->__toString());
+    $this->assertStringContainsString($expected, $this->get("/"));
+  }
+
+  public function testLoginResponds() {
+    $expected = 'Please edit the template source file in /templates/default/src/login';
+    $this->assertStringContainsString($expected, $this->get("/login"));
+  }
+  
+  public static function setUpBeforeClass():void {
+    if (file_exists(__DIR__ . '/testapp'))
+      echo "\r\nSkipping installation. Please remove " . __DIR__ . '/testapp' . " directory if you want a complete test.";
   }
   
   public static function tearDownAfterClass():void {
