@@ -1,4 +1,4 @@
-1. composer require paooolino/WDA
+1. composer require paooolino/wda
 2. write config.ini (see example in vendor/paooolino/wda/tests/samples/sample.ini
 3. php vendor/paooolino/WDA/generatecode.php config.ini app
 4. cd app

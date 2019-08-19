@@ -1,5 +1,5 @@
 <?php
-require __DIR__ . '/vendor/autoload.php';
+require 'vendor/autoload.php';
 use Ifsnop\Mysqldump as IMysqldump;
 
 // load config string.
@@ -16,6 +16,7 @@ $wda->loadConfigFromString($ini);
 //
 
 // change base directory
+@mkdir($argv[2]);
 chdir($argv[2]);
 
 //composer.json.
