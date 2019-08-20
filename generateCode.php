@@ -79,6 +79,9 @@ $controllers = $wda->getCodeControllers();
 foreach ($controllers["pages"] as $c) {
   $wda->create_file("app/src/Controller/", $c["classname"] . ".php", $c["code"]);
 }
+foreach ($controllers["actions"] as $c) {
+  $wda->create_file("app/src/Controller/", $c["classname"] . ".php", $c["code"]);
+}
 
 // Models
 $models = $wda->getCodeModels();

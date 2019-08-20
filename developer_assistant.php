@@ -1,4 +1,23 @@
 <?php
+/*
+ *  CONFIGURATION BEGIN
+ */
+ 
+// the autoload where to find the Wda class
+$AUTOLOAD_PATH = __DIR__ . '/vendor/autoload.php';
+// the config.ini used to generate the application
+$CONFIG_INI_PATH = __DIR__ . '/vendor/paooolino/wda/tests/samples/sample.ini';
+// the app root directory
+$APP_DIR = __DIR__ . '/app';
+// the js and css assets directory
+$ASSETS_PATH = 'vendor/paooolino/wda';
+
+/*
+ *  CONFIGURATION END
+ *  do not touch anything below.
+ * ============================================================================
+ */
+
 ini_set('display_errors', 0);
 
 if (isset($_GET["f"])) {
@@ -22,7 +41,9 @@ if (isset($_GET["f"])) {
 <html>
 <head>
   <title><?php $parts = explode("/", $_GET["f"]); echo end($parts); ?></title>
+  <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
   <style>
+    body{font-family: 'Roboto', sans-serif;}
     #editor { 
         position: absolute;
         top: 0;
@@ -35,8 +56,8 @@ if (isset($_GET["f"])) {
 <body>
   <div id="editor"><?php echo htmlspecialchars(file_get_contents($_GET["f"]));?></div>
 
-  <script src="js/jquery/jquery-3.4.1.min.js"></script>
-  <script src="js/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+  <script src="<?php echo $ASSETS_PATH; ?>/js/jquery/jquery-3.4.1.min.js"></script>
+  <script src="<?php echo $ASSETS_PATH; ?>/js/ace/ace.js" type="text/javascript" charset="utf-8"></script>
   <script>
       var editor = ace.edit("editor");
       editor.setTheme("ace/theme/monokai");
@@ -83,10 +104,10 @@ if (isset($_GET["f"])) {
 //
 //
 //  
-require __DIR__ . '/vendor/autoload.php';
+require $AUTOLOAD_PATH;
 
 $wda = new Wda\Wda();
-$ini = file_get_contents(__DIR__ . '/../config/config.ini');
+$ini = file_get_contents($CONFIG_INI_PATH);
 $wda->loadConfigFromString($ini);
 $config = $wda->get_ini_section("CONTROLLERS");
 $config_models = $wda->get_ini_section("MODELS");
@@ -127,33 +148,33 @@ function html_item($item, $routes=[]) {
 
 // carica le files infos
 $controllers = array_filter(array_map(function($item) {
-  return get_file_infos(__DIR__ . '/../app/src/Controller', $item);
-}, scandir(__DIR__ . '/../app/src/Controller')));
+  return get_file_infos($APP_DIR . '/app/src/Controller', $item);
+}, scandir($APP_DIR . '/app/src/Controller')));
 
 $templates = array_filter(array_map(function($item) {
-  return get_file_infos(__DIR__ . '/../templates/default/src', $item);
-}, scandir(__DIR__ . '/../templates/default/src')));
+  return get_file_infos($APP_DIR . '/templates/default/src', $item);
+}, scandir($APP_DIR . '/templates/default/src')));
 $subtemplates = array_filter(array_map(function($item) {
-  return get_file_infos(__DIR__ . '/../templates/default/src/partials', $item);
-}, scandir(__DIR__ . '/../templates/default/src/partials')));
+  return get_file_infos($APP_DIR . '/templates/default/src/partials', $item);
+}, scandir($APP_DIR . '/templates/default/src/partials')));
 
 $models = array_filter(array_map(function($item) {
-  return get_file_infos(__DIR__ . '/../app/src/Model', $item);
-}, scandir(__DIR__ . '/../app/src/Model')));
+  return get_file_infos($APP_DIR . '/app/src/Model', $item);
+}, scandir($APP_DIR . '/app/src/Model')));
 
 $services = array_filter(array_map(function($item) {
-  return get_file_infos(__DIR__ . '/../app/src', $item);
-}, scandir(__DIR__ . '/../app/src')));
+  return get_file_infos($APP_DIR . '/app/src', $item);
+}, scandir($APP_DIR . '/app/src')));
 
 $csss = array_filter(array_map(function($item) {
-  return get_file_infos(__DIR__ . '/../templates/default/css', $item);
-}, scandir(__DIR__ . '/../templates/default/css')));
+  return get_file_infos($APP_DIR . '/templates/default/css', $item);
+}, scandir($APP_DIR . '/templates/default/css')));
 
 $jss = array_filter(array_map(function($item) {
-  return get_file_infos(__DIR__ . '/../templates/default/js', $item);
-}, scandir(__DIR__ . '/../templates/default/js')));
+  return get_file_infos($APP_DIR . '/templates/default/js', $item);
+}, scandir($APP_DIR . '/templates/default/js')));
 
-$config_link = '?f=' . rawurlencode(__DIR__ . '/../config/config.ini');        
+$config_link = '?f=' . rawurlencode($CONFIG_INI_PATH);        
           
 // per ogni model, template elenca le route che li usano
 $models_routes = [];
@@ -182,8 +203,11 @@ foreach ($config as $route_name => $route_config) {
 <!doctype html>
 <html>
 <head>
+  <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
   <style>
   *{margin:0;padding:0;}
+  body{font-family: 'Roboto', sans-serif;}
+  .header{background-color:#444;color:#ddd;padding:10px;font-size:18pt;margin-bottom:20px;}
   ul, li{list-style-type:none;}
   li{padding:8px;border-bottom:1px solid #ddd;}
   li.color-0{background-color:red;}
@@ -196,6 +220,9 @@ foreach ($config as $route_name => $route_config) {
   </style>
 </head>
 <body>
+  <div class="header">
+    Web developer assistant
+  </div>
   <table>
     <thead>
       <tr>
@@ -225,9 +252,9 @@ foreach ($config as $route_name => $route_config) {
             foreach ($config as $route_name => $route_config) {
               $classname = ucfirst(strtolower($route_name)) . 'Controller';
               $filename = $classname . '.php';
-              $file = __DIR__ . '/../app/src/Controller' . $filename;
+              $file = $APP_DIR . '/app/src/Controller' . $filename;
               
-              $fileinfos = get_file_infos(__DIR__ . '/../app/src/Controller', $filename);
+              $fileinfos = get_file_infos($APP_DIR . '/app/src/Controller', $filename);
               if ($fileinfos) {
                 echo html_item($fileinfos);
               } else {

@@ -51,7 +51,8 @@ final class WdaTest extends TestCase {
   protected function setUp():void {
     // chiamare il prepareTest
     if (file_exists($this->dir)) {
-      // do nothing
+      //just rebuild
+      shell_exec("php generatecode.php tests/samples/sample.ini " . $this->dir);
     } else {
       $this->prepareTest();
     }
