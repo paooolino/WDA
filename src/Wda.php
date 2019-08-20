@@ -274,7 +274,7 @@ END_OF_CODE;
       } else {
         $controllers["actions"][] = [
           "classname" => $classname,
-          "code" => $this->getCodeControllerAction($route_config)
+          "code" => $this->getCodeControllerAction($classname, $route_config)
         ];
       }
     }
@@ -536,8 +536,24 @@ END_OF_CODE;
     return $code;
   }
   
-  private function getCodeControllerAction($route_config) {
-    $code = $this->template("ControllerAction.php");
+  private function getCodeControllerAction($classname, $route_config) {
+    $deps = $this->get_deps_controller($route_config);
+        
+    $deps_members = $this->getDepsMembers($deps);
+    $deps_assign = $this->getDepsAssign($deps);
+    $deps_list = $this->getDepsList($deps);
+    $models_content = $this->getModelsContent($route_config);
+    
+    $code = $this->populateTemplate(
+      $this->template("ControllerAction.php"),
+      [
+        "classname" => $classname,
+        "deps_members" => $deps_members,
+        "deps_assign" => $deps_assign,
+        "deps_list" => $deps_list,
+        "models_content" => $models_content
+      ]
+    );
     return $code;
   }
   
