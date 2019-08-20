@@ -3,22 +3,22 @@
  *  CONFIGURATION BEGIN
  */
  
+ini_set('display_errors', 0);
+
 // the autoload where to find the Wda class
-$AUTOLOAD_PATH = __DIR__ . '/vendor/autoload.php';
+$AUTOLOAD_PATH = __DIR__ . '/../vendor/autoload.php';
 // the config.ini used to generate the application
-$CONFIG_INI_PATH = __DIR__ . '/vendor/paooolino/wda/tests/samples/sample.ini';
+$CONFIG_INI_PATH = __DIR__ . '/config.ini';
 // the app root directory
-$APP_DIR = __DIR__ . '/www';
+$APP_DIR = __DIR__;
 // the js and css assets directory
-$ASSETS_PATH = 'vendor/paooolino/wda';
+$ASSETS_PATH = '../vendor/paooolino/wda';
 
 /*
  *  CONFIGURATION END
  *  do not touch anything below.
  * ============================================================================
  */
-
-ini_set('display_errors', 0);
 
 if (isset($_GET["f"])) {
   $ext = (new SplFileInfo($_GET["f"]))->getExtension();
@@ -147,30 +147,30 @@ function html_item($item, $routes=[]) {
 
 
 // carica le files infos
-$controllers = array_filter(array_map(function($item) {
+$controllers = array_filter(array_map(function($item) use($APP_DIR) {
   return get_file_infos($APP_DIR . '/app/src/Controller', $item);
 }, scandir($APP_DIR . '/app/src/Controller')));
 
-$templates = array_filter(array_map(function($item) {
+$templates = array_filter(array_map(function($item) use($APP_DIR) {
   return get_file_infos($APP_DIR . '/templates/default/src', $item);
 }, scandir($APP_DIR . '/templates/default/src')));
-$subtemplates = array_filter(array_map(function($item) {
+$subtemplates = array_filter(array_map(function($item) use($APP_DIR) {
   return get_file_infos($APP_DIR . '/templates/default/src/partials', $item);
 }, scandir($APP_DIR . '/templates/default/src/partials')));
 
-$models = array_filter(array_map(function($item) {
+$models = array_filter(array_map(function($item) use($APP_DIR) {
   return get_file_infos($APP_DIR . '/app/src/Model', $item);
 }, scandir($APP_DIR . '/app/src/Model')));
 
-$services = array_filter(array_map(function($item) {
+$services = array_filter(array_map(function($item) use($APP_DIR) {
   return get_file_infos($APP_DIR . '/app/src', $item);
 }, scandir($APP_DIR . '/app/src')));
 
-$csss = array_filter(array_map(function($item) {
+$csss = array_filter(array_map(function($item) use($APP_DIR) {
   return get_file_infos($APP_DIR . '/templates/default/css', $item);
 }, scandir($APP_DIR . '/templates/default/css')));
 
-$jss = array_filter(array_map(function($item) {
+$jss = array_filter(array_map(function($item) use($APP_DIR) {
   return get_file_infos($APP_DIR . '/templates/default/js', $item);
 }, scandir($APP_DIR . '/templates/default/js')));
 
