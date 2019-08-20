@@ -8,7 +8,7 @@ $AUTOLOAD_PATH = __DIR__ . '/vendor/autoload.php';
 // the config.ini used to generate the application
 $CONFIG_INI_PATH = __DIR__ . '/vendor/paooolino/wda/tests/samples/sample.ini';
 // the app root directory
-$APP_DIR = __DIR__ . '/app';
+$APP_DIR = __DIR__ . '/www';
 // the js and css assets directory
 $ASSETS_PATH = 'vendor/paooolino/wda';
 

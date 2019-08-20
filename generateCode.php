@@ -130,6 +130,16 @@ $filename = 'scripts.js';
 $code = $wda->getJsCode();
 $wda->create_file($dir, $filename, $code, false);
 
+// copy sample ini
+$source = __DIR__ . '/tests/samples/sample.ini';
+$dest = 'config.ini';
+copy($source, $dest);
+
+// copy developer_assistant
+$source = __DIR__ . '/developer_assistant.php';
+$dest = 'developer_assistant.php';
+copy($source, $dest);
+
 /*
 $wda->writeBootstrap();
 
