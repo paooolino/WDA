@@ -10,15 +10,30 @@ $AUTOLOAD_PATH = __DIR__ . '/../vendor/autoload.php';
 // the config.ini used to generate the application
 $CONFIG_INI_PATH = __DIR__ . '/config.ini';
 // the app root directory
-$APP_DIR = __DIR__;
-// the js and css assets directory
-$ASSETS_PATH = '../vendor/paooolino/wda';
+$APP_DIRNAME = "www";
+$APP_DIRPATH = __DIR__;
+// the WDA directory in vendor
+$WDA_DIR = '../vendor/paooolino/wda';
 
 /*
  *  CONFIGURATION END
  *  do not touch anything below.
  * ============================================================================
  */
+
+// copio il sample se non esiste
+if (!file_exists($CONFIG_INI_PATH)) {
+  $src = $WDA_DIR . '/tests/samples/sample.ini';
+  copy($src, $CONFIG_INI_PATH);
+}
+
+// azione di compilazione
+if (isset($_GET["action"])) {
+  if ($_GET["action"] == "compile") {
+    shell_exec("php ./" . $WDA_DIR . "/generatecode.php " . $CONFIG_INI_PATH . " " . $APP_DIRNAME);
+    die("compiled.");
+  }
+}
 
 if (isset($_GET["f"])) {
   $ext = (new SplFileInfo($_GET["f"]))->getExtension();
@@ -56,8 +71,8 @@ if (isset($_GET["f"])) {
 <body>
   <div id="editor"><?php echo htmlspecialchars(file_get_contents($_GET["f"]));?></div>
 
-  <script src="<?php echo $ASSETS_PATH; ?>/js/jquery/jquery-3.4.1.min.js"></script>
-  <script src="<?php echo $ASSETS_PATH; ?>/js/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+  <script src="<?php echo $WDA_DIR; ?>/js/jquery/jquery-3.4.1.min.js"></script>
+  <script src="<?php echo $WDA_DIR; ?>/js/ace/ace.js" type="text/javascript" charset="utf-8"></script>
   <script>
       var editor = ace.edit("editor");
       editor.setTheme("ace/theme/monokai");
@@ -147,32 +162,32 @@ function html_item($item, $routes=[]) {
 
 
 // carica le files infos
-$controllers = array_filter(array_map(function($item) use($APP_DIR) {
-  return get_file_infos($APP_DIR . '/app/src/Controller', $item);
-}, scandir($APP_DIR . '/app/src/Controller')));
+$controllers = array_filter(array_map(function($item) use($APP_DIRPATH) {
+  return get_file_infos($APP_DIRPATH . '/app/src/Controller', $item);
+}, scandir($APP_DIRPATH . '/app/src/Controller')));
 
-$templates = array_filter(array_map(function($item) use($APP_DIR) {
-  return get_file_infos($APP_DIR . '/templates/default/src', $item);
-}, scandir($APP_DIR . '/templates/default/src')));
-$subtemplates = array_filter(array_map(function($item) use($APP_DIR) {
-  return get_file_infos($APP_DIR . '/templates/default/src/partials', $item);
-}, scandir($APP_DIR . '/templates/default/src/partials')));
+$templates = array_filter(array_map(function($item) use($APP_DIRPATH) {
+  return get_file_infos($APP_DIRPATH . '/templates/default/src', $item);
+}, scandir($APP_DIRPATH . '/templates/default/src')));
+$subtemplates = array_filter(array_map(function($item) use($APP_DIRPATH) {
+  return get_file_infos($APP_DIRPATH . '/templates/default/src/partials', $item);
+}, scandir($APP_DIRPATH . '/templates/default/src/partials')));
 
-$models = array_filter(array_map(function($item) use($APP_DIR) {
-  return get_file_infos($APP_DIR . '/app/src/Model', $item);
-}, scandir($APP_DIR . '/app/src/Model')));
+$models = array_filter(array_map(function($item) use($APP_DIRPATH) {
+  return get_file_infos($APP_DIRPATH . '/app/src/Model', $item);
+}, scandir($APP_DIRPATH . '/app/src/Model')));
 
-$services = array_filter(array_map(function($item) use($APP_DIR) {
-  return get_file_infos($APP_DIR . '/app/src', $item);
-}, scandir($APP_DIR . '/app/src')));
+$services = array_filter(array_map(function($item) use($APP_DIRPATH) {
+  return get_file_infos($APP_DIRPATH . '/app/src', $item);
+}, scandir($APP_DIRPATH . '/app/src')));
 
-$csss = array_filter(array_map(function($item) use($APP_DIR) {
-  return get_file_infos($APP_DIR . '/templates/default/css', $item);
-}, scandir($APP_DIR . '/templates/default/css')));
+$csss = array_filter(array_map(function($item) use($APP_DIRPATH) {
+  return get_file_infos($APP_DIRPATH . '/templates/default/css', $item);
+}, scandir($APP_DIRPATH . '/templates/default/css')));
 
-$jss = array_filter(array_map(function($item) use($APP_DIR) {
-  return get_file_infos($APP_DIR . '/templates/default/js', $item);
-}, scandir($APP_DIR . '/templates/default/js')));
+$jss = array_filter(array_map(function($item) use($APP_DIRPATH) {
+  return get_file_infos($APP_DIRPATH . '/templates/default/js', $item);
+}, scandir($APP_DIRPATH . '/templates/default/js')));
 
 $config_link = '?f=' . rawurlencode($CONFIG_INI_PATH);        
           
@@ -252,9 +267,9 @@ foreach ($config as $route_name => $route_config) {
             foreach ($config as $route_name => $route_config) {
               $classname = ucfirst(strtolower($route_name)) . 'Controller';
               $filename = $classname . '.php';
-              $file = $APP_DIR . '/app/src/Controller' . $filename;
+              $file = $APP_DIRPATH . '/app/src/Controller' . $filename;
               
-              $fileinfos = get_file_infos($APP_DIR . '/app/src/Controller', $filename);
+              $fileinfos = get_file_infos($APP_DIRPATH . '/app/src/Controller', $filename);
               if ($fileinfos) {
                 echo html_item($fileinfos);
               } else {
