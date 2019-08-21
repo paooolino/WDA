@@ -3,17 +3,17 @@
  *  CONFIGURATION BEGIN
  */
  
-ini_set('display_errors', 0);
+//ini_set('display_errors', 0);
 
 // the autoload where to find the Wda class
-$AUTOLOAD_PATH = __DIR__ . '/../vendor/autoload.php';
+$AUTOLOAD_PATH = __DIR__ . '/vendor/autoload.php';
 // the config.ini used to generate the application
 $CONFIG_INI_PATH = __DIR__ . '/config.ini';
 // the app root directory
 $APP_DIRNAME = "www";
 $APP_DIRPATH = __DIR__;
 // the WDA directory in vendor
-$WDA_DIR = '../vendor/paooolino/wda';
+$WDA_DIR = '/vendor/paooolino/wda';
 
 /*
  *  CONFIGURATION END
@@ -21,13 +21,7 @@ $WDA_DIR = '../vendor/paooolino/wda';
  * ============================================================================
  */
 
-// copio il sample se non esiste
-if (!file_exists($CONFIG_INI_PATH)) {
-  $src = $WDA_DIR . '/tests/samples/sample.ini';
-  copy($src, $CONFIG_INI_PATH);
-}
-
-// azione di compilazione
+// azione di compilazione, richiamata dopo il salvataggio
 if (isset($_GET["action"])) {
   if ($_GET["action"] == "compile") {
     shell_exec("php ./" . $WDA_DIR . "/generatecode.php " . $CONFIG_INI_PATH . " " . $APP_DIRNAME);
@@ -40,6 +34,7 @@ if (isset($_GET["f"])) {
   $acemode = $ext;
   if ($ext == "js") $acemode = "javascript";
   
+  // intercetta il salvataggio
   if (isset($_POST["value"])) {
     $result = file_put_contents($_GET["f"], $_POST["value"]);
     echo json_encode(["result" => !($result === false)]);
@@ -58,10 +53,12 @@ if (isset($_GET["f"])) {
   <title><?php $parts = explode("/", $_GET["f"]); echo end($parts); ?></title>
   <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
   <style>
+    *{margin:0;padding:0;}
     body{font-family: 'Roboto', sans-serif;}
+    .header{background-color:#444;color:#ddd;padding:10px;font-size:18pt;margin-bottom:20px;}
     #editor { 
         position: absolute;
-        top: 0;
+        top: 50px;
         right: 0;
         bottom: 0;
         left: 0;
@@ -69,6 +66,11 @@ if (isset($_GET["f"])) {
   </style>
 </head>
 <body>
+  <div class="header">
+    Web developer assistant |
+    <button onclick="save_and_compile();">Save + compile</button>
+  </div>
+
   <div id="editor"><?php echo htmlspecialchars(file_get_contents($_GET["f"]));?></div>
 
   <script src="<?php echo $WDA_DIR; ?>/js/jquery/jquery-3.4.1.min.js"></script>
@@ -85,27 +87,44 @@ if (isset($_GET["f"])) {
       editor.commands.addCommand({
           name: 'save',
           bindKey: {win: "Ctrl-S", "mac": "Cmd-S"},
-          exec: function(editor) {
-            $.ajax({
-              url: 'developer_assistant.php?f=' + encodeURIComponent('<?php echo str_replace("\\", "\\\\", $_GET["f"]); ?>'),
-              type: 'post',
-              dataType: 'json',
-              data: {
-                value: editor.session.getValue()
-              },
-              failure: function() {
-                alert('failed');
-              },
-              success: function(json) {
-                if (json.result) {
-
-                } else {
-                  alert('WARNING: save failed.');
-                }
-              }
-            });
-          }
+          exec: save_and_compile
       })
+      
+      function save_and_compile() {
+        // saving...
+        //
+        $.ajax({
+          url: 'developer_assistant.php?f=' + encodeURIComponent('<?php echo str_replace("\\", "\\\\", $_GET["f"]); ?>'),
+          type: 'post',
+          dataType: 'json',
+          data: {
+            value: editor.session.getValue()
+          },
+          failure: function() {
+            alert('failed');
+          },
+          success: function(json) {
+            if (json.result) {
+              // ...saved.
+              //
+              compile();
+            } else {
+              alert('WARNING: save failed.');
+            }
+          }
+        });
+      }
+      
+      function compile() {
+        $.ajax({
+          url: 'developer_assistant.php?action=compile',
+          success: function(text) {
+            console.log(text);
+            // ...compiled.
+            //
+          }
+        });
+      }
   </script>
 </body>
 </html>

@@ -130,11 +130,6 @@ $filename = 'scripts.js';
 $code = $wda->getJsCode();
 $wda->create_file($dir, $filename, $code, false);
 
-// copy developer_assistant
-$source = __DIR__ . '/developer_assistant.php';
-$dest = 'developer_assistant.php';
-copy($source, $dest);
-
 /*
 $wda->writeBootstrap();
 
