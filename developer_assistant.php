@@ -3,7 +3,7 @@
  *  CONFIGURATION BEGIN
  */
  
-//ini_set('display_errors', 0);
+ini_set('display_errors', 0);
 
 // the autoload where to find the Wda class
 $AUTOLOAD_PATH = __DIR__ . '/vendor/autoload.php';
@@ -11,9 +11,9 @@ $AUTOLOAD_PATH = __DIR__ . '/vendor/autoload.php';
 $CONFIG_INI_PATH = __DIR__ . '/config.ini';
 // the app root directory
 $APP_DIRNAME = "www";
-$APP_DIRPATH = __DIR__;
+$APP_DIR = __DIR__ . '/' . $APP_DIRNAME;
 // the WDA directory in vendor
-$WDA_DIR = '/vendor/paooolino/wda';
+$WDA_DIR = 'vendor/paooolino/wda';
 
 /*
  *  CONFIGURATION END
@@ -181,32 +181,32 @@ function html_item($item, $routes=[]) {
 
 
 // carica le files infos
-$controllers = array_filter(array_map(function($item) use($APP_DIRPATH) {
-  return get_file_infos($APP_DIRPATH . '/app/src/Controller', $item);
-}, scandir($APP_DIRPATH . '/app/src/Controller')));
+$controllers = array_filter(array_map(function($item) use($APP_DIR) {
+  return get_file_infos($APP_DIR . '/app/src/Controller', $item);
+}, scandir($APP_DIR . '/app/src/Controller')));
 
-$templates = array_filter(array_map(function($item) use($APP_DIRPATH) {
-  return get_file_infos($APP_DIRPATH . '/templates/default/src', $item);
-}, scandir($APP_DIRPATH . '/templates/default/src')));
-$subtemplates = array_filter(array_map(function($item) use($APP_DIRPATH) {
-  return get_file_infos($APP_DIRPATH . '/templates/default/src/partials', $item);
-}, scandir($APP_DIRPATH . '/templates/default/src/partials')));
+$templates = array_filter(array_map(function($item) use($APP_DIR) {
+  return get_file_infos($APP_DIR . '/templates/default/src', $item);
+}, scandir($APP_DIR . '/templates/default/src')));
+$subtemplates = array_filter(array_map(function($item) use($APP_DIR) {
+  return get_file_infos($APP_DIR . '/templates/default/src/partials', $item);
+}, scandir($APP_DIR . '/templates/default/src/partials')));
 
-$models = array_filter(array_map(function($item) use($APP_DIRPATH) {
-  return get_file_infos($APP_DIRPATH . '/app/src/Model', $item);
-}, scandir($APP_DIRPATH . '/app/src/Model')));
+$models = array_filter(array_map(function($item) use($APP_DIR) {
+  return get_file_infos($APP_DIR . '/app/src/Model', $item);
+}, scandir($APP_DIR . '/app/src/Model')));
 
-$services = array_filter(array_map(function($item) use($APP_DIRPATH) {
-  return get_file_infos($APP_DIRPATH . '/app/src', $item);
-}, scandir($APP_DIRPATH . '/app/src')));
+$services = array_filter(array_map(function($item) use($APP_DIR) {
+  return get_file_infos($APP_DIR . '/app/src', $item);
+}, scandir($APP_DIR . '/app/src')));
 
-$csss = array_filter(array_map(function($item) use($APP_DIRPATH) {
-  return get_file_infos($APP_DIRPATH . '/templates/default/css', $item);
-}, scandir($APP_DIRPATH . '/templates/default/css')));
+$csss = array_filter(array_map(function($item) use($APP_DIR) {
+  return get_file_infos($APP_DIR . '/templates/default/css', $item);
+}, scandir($APP_DIR . '/templates/default/css')));
 
-$jss = array_filter(array_map(function($item) use($APP_DIRPATH) {
-  return get_file_infos($APP_DIRPATH . '/templates/default/js', $item);
-}, scandir($APP_DIRPATH . '/templates/default/js')));
+$jss = array_filter(array_map(function($item) use($APP_DIR) {
+  return get_file_infos($APP_DIR . '/templates/default/js', $item);
+}, scandir($APP_DIR . '/templates/default/js')));
 
 $config_link = '?f=' . rawurlencode($CONFIG_INI_PATH);        
           
@@ -286,9 +286,9 @@ foreach ($config as $route_name => $route_config) {
             foreach ($config as $route_name => $route_config) {
               $classname = ucfirst(strtolower($route_name)) . 'Controller';
               $filename = $classname . '.php';
-              $file = $APP_DIRPATH . '/app/src/Controller' . $filename;
+              $file = $APP_DIR . '/app/src/Controller' . $filename;
               
-              $fileinfos = get_file_infos($APP_DIRPATH . '/app/src/Controller', $filename);
+              $fileinfos = get_file_infos($APP_DIR . '/app/src/Controller', $filename);
               if ($fileinfos) {
                 echo html_item($fileinfos);
               } else {
