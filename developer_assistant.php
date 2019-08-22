@@ -63,12 +63,16 @@ if (isset($_GET["f"])) {
         bottom: 0;
         left: 0;
     }
+    #saving{display:none;}
+    #compiling{display:none;}
   </style>
 </head>
 <body>
   <div class="header">
     Web developer assistant |
     <button onclick="save_and_compile();">Save + compile</button>
+    <span id="saving">saving...</span>
+    <span id="compiling">compiling...</span>
   </div>
 
   <div id="editor"><?php echo htmlspecialchars(file_get_contents($_GET["f"]));?></div>
@@ -92,7 +96,7 @@ if (isset($_GET["f"])) {
       
       function save_and_compile() {
         // saving...
-        //
+        $('#saving').show();
         $.ajax({
           url: 'developer_assistant.php?f=' + encodeURIComponent('<?php echo str_replace("\\", "\\\\", $_GET["f"]); ?>'),
           type: 'post',
@@ -106,7 +110,7 @@ if (isset($_GET["f"])) {
           success: function(json) {
             if (json.result) {
               // ...saved.
-              //
+              $('#saving').hide();
               compile();
             } else {
               alert('WARNING: save failed.');
@@ -116,12 +120,12 @@ if (isset($_GET["f"])) {
       }
       
       function compile() {
+        $('#compiling').show();
         $.ajax({
           url: 'developer_assistant.php?action=compile',
           success: function(text) {
-            console.log(text);
             // ...compiled.
-            //
+            $('#compiling').hide();
           }
         });
       }
