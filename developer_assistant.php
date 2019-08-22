@@ -14,6 +14,8 @@ $APP_DIRNAME = "www";
 $APP_DIR = __DIR__ . '/' . $APP_DIRNAME;
 // the WDA directory in vendor
 $WDA_DIR = 'vendor/paooolino/wda';
+$APP_URL = str_replace("/developer_assistant.php", "", $_SERVER['REQUEST_URI'])
+  . '/' . $APP_DIRNAME;
 
 /*
  *  CONFIGURATION END
@@ -278,7 +280,19 @@ foreach ($config as $route_name => $route_config) {
           <ul>
           <?php
           foreach ($config as $route_name => $route_config) {
-            ?><li class="<?php echo $route_name; ?>"><?php echo $route_name; ?></li><?php
+            if (isset($route_config["template"])) {
+              ?>
+              <li class="<?php echo $route_name; ?>">
+                <a target="_blank" href="<?php echo $APP_URL . $route_config["path"]; ?>"><?php echo $route_name; ?></a>
+              </li>
+              <?php
+            } else {
+              ?>
+              <li class="<?php echo $route_name; ?>">
+                <?php echo $route_name; ?>
+              </li>
+              <?php
+            }
           }
           ?>
           </ul>
