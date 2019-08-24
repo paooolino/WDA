@@ -9,14 +9,14 @@
 
 namespace WebApp\Middleware;
 
-class AppInit {
+class App_initMiddleware {
+{{deps_members}}
   
-  private $app;
-  
-  public function __construct($app) {
-    $this->app = $app;
+  public function __construct({{deps_list}}) {
+{{deps_assign}}
   }
   
+  /* === DEVELOPER BEGIN */
   public function __invoke($request, $response, $next) {  
     $this->app->baseUrl = $request->getUri()->getBaseUrl();
     $this->app->templateUrl = $this->app->baseUrl 
@@ -25,4 +25,5 @@ class AppInit {
       
     return $next($request, $response);
   }
+  /* === DEVELOPER END */
 }

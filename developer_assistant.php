@@ -214,6 +214,10 @@ $jss = array_filter(array_map(function($item) use($APP_DIR) {
   return get_file_infos($APP_DIR . '/templates/default/js', $item);
 }, scandir($APP_DIR . '/templates/default/js')));
 
+$middlewares = array_filter(array_map(function($item) use($APP_DIR) {
+  return get_file_infos($APP_DIR . '/app/src/Middleware', $item);
+}, scandir($APP_DIR . '/app/src/Middleware')));
+
 $config_link = '?f=' . rawurlencode($CONFIG_INI_PATH);        
           
 // per ogni model, template elenca le route che li usano
@@ -271,6 +275,7 @@ foreach ($config as $route_name => $route_config) {
         <th>Models</th>
         <th>Templates</th>
         <th>Services</th>
+        <th>Middlewares</th>
         <th>Config</th>
       </tr>
     </thead>
@@ -359,6 +364,15 @@ foreach ($config as $route_name => $route_config) {
           <ul>
             <?php 
             foreach ($services as $item) { 
+              echo html_item($item);
+            }
+            ?>
+          </ul>
+        </td>
+        <td id="middlewares_col" valign="top">
+          <ul>
+            <?php 
+            foreach ($middlewares as $item) { 
               echo html_item($item);
             }
             ?>

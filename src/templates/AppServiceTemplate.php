@@ -10,9 +10,10 @@ namespace WebApp;
 /* === DEVELOPER END */
 class AppService {
   
-  public $templateName;
-  public $templateUrl; /* will be initiated by AppInit middleware */
-  public $baseUrl;     /* will be initiated by AppInit middleware */
+  private $templateName;
+  
+  public $templateUrl; /* will be initiated by App_init middleware */
+  public $baseUrl;     /* will be initiated by App_init middleware */
   
   public function __construct($templateName) {
     $this->templateName = $templateName;

@@ -109,11 +109,19 @@ class Wda {
       }
       $deps = implode(", ", $deps);
       
-      $codearr[] = <<<END_OF_CODE
+      if (isset($item_config["type"]) && $item_config["type"] == "factory") {
+        $codearr[] = <<<END_OF_CODE
+\$container['$item'] = function(\$c) {
+  return WebApp\\$class_name::create($deps);
+};
+END_OF_CODE;
+      } else {
+        $codearr[] = <<<END_OF_CODE
 \$container['$item'] = function(\$c) {
   return new WebApp\\$class_name($deps);
 };
 END_OF_CODE;
+      }
     }
     
     return implode("\r\n\r\n", $codearr);
@@ -147,6 +155,18 @@ END_OF_CODE;
     return implode("\r\n\r\n", $codearr);
   }
   
+  private function getMiddlewaresForRoutes($route_config) {
+    $middlewares = "";
+    if (isset($route_config["middlewares"])) {
+      $middlewares_arr = $this->sToArr($route_config["middlewares"]);
+      foreach ($middlewares_arr as $middleware_name) {
+        $mClassName = 'WebApp\\Middleware\\' . ucfirst(strtolower($middleware_name)) . 'Middleware';
+        $middlewares .= "->add('$mClassName')";
+      }
+    }
+    return $middlewares;
+  }
+  
   private function get_deps_controller($route_config) {
     $deps = [];
     
@@ -173,6 +193,26 @@ END_OF_CODE;
       }, explode(",", $route_config["models"])));
     }
     
+    return $deps;
+  }
+  
+  private function get_deps_model($model_config) {
+    return $this->get_deps_item($model_config);
+  }
+  
+  private function get_deps_service($service_config) {
+    return $this->get_deps_item($service_config);
+  }
+  
+  private function get_deps_middleware($middleware_config) {
+    return $this->get_deps_item($middleware_config);
+  }
+  
+  private function get_deps_item($item_config) {
+    $deps = [];
+    if (isset($item_config["deps"])) {
+      $deps = array_merge($deps, $this->sToArr($item_config["deps"]));
+    }
     return $deps;
   }
   
@@ -223,10 +263,16 @@ END_OF_CODE;
   }
   
   public function getCodeMiddlewarePhp() {
-    $code = <<<END_OF_CODE
-<?php
-  \$app->add('WebApp\Middleware\AppInit');
-END_OF_CODE;
+    // find middlewares with routes = ALL
+    $config = $this->get_ini_section("MIDDLEWARES");
+    
+    $code = "<?php\r\n";
+    foreach ($config as $middleware_name => $middleware_config) {
+      if (isset($middleware_config["routes"]) && $middleware_config["routes"] == "ALL") {
+        $mClassName = 'WebApp\\Middleware\\' . ucfirst(strtolower($middleware_name)) . 'Middleware';
+        $code .= "\$app->add('$mClassName');\r\n";      
+      }
+    }
     return $code;
   }
   
@@ -234,13 +280,13 @@ END_OF_CODE;
     $config = $this->get_ini_section("CONTROLLERS");
 
     $code = "";
-
     foreach ($config as $route_name => $route_config) {
       $rpath = $route_config["path"];
       $rClassName = 'WebApp\\Controller\\' . ucfirst(strtolower($route_name)) . 'Controller';
       $method = (isset($route_config["method"])) ? $route_config["method"] : "get";
+      $middlewares = $this->getMiddlewaresForRoutes($route_config);
       
-      $code .= "\$app->$method('$rpath', '$rClassName')->setName('$route_name');\r\n";
+      $code .= "\$app->$method('$rpath', '$rClassName')->setName('$route_name')$middlewares;\r\n";
     }
     return $code;
   }
@@ -310,6 +356,21 @@ END_OF_CODE;
     }
     
     return $models;
+  }
+  
+  public function getCodeMiddlewares() {
+    $middlewares = [];
+
+    $config = $this->get_ini_section("MIDDLEWARES");
+    foreach ($config as $middleware_name => $middleware_config) {
+      $classname = ucfirst(strtolower($middleware_name)) . 'Middleware';
+      $middlewares[] = [
+        "classname" => $classname,
+        "code" => $this->getCodeMiddleware($classname, $middleware_config)
+      ];
+    }
+    
+    return $middlewares;
   }
   
   public function getCodeTemplates() {
@@ -492,13 +553,25 @@ END_OF_CODE;
     return $code;
   }
   
-  private function getCodeService($classname, $route_config) {
-    $deps_members = "";
-    $deps_assign = "";
-    $deps_list = "";
+  private function getCodeService($classname, $service_config) {
+    $deps = $this->get_deps_service($service_config);
+
+    $deps_members = $this->getDepsMembers($deps);
+    $deps_assign = $this->getDepsAssign($deps);
+    $deps_list = $this->getDepsList($deps);
+
+    $tpl_name = "ServiceTemplate.php";
+    if (isset($service_config["type"]) && $service_config["type"] == "factory")
+      $tpl_name = "ServiceTemplateFactory.php";
+
+    // default services: [app] >>> AppService, [view] >>> ViewService
+    if ($className == "AppService")
+      $tpl_name = "AppServiceTemplate.php";
+    if ($className == "ViewService")
+      $tpl_name = "ViewServiceTemplate.php";
     
     $code = $this->populateTemplate(
-      $this->template("ServiceTemplate.php"),
+      $this->template($tpl_name),
       [
         "classname" => $classname,
         "deps_members" => $deps_members,
@@ -510,12 +583,38 @@ END_OF_CODE;
   }
   
   private function getCodeModel($classname, $model_config) {
-    $deps_members = "";
-    $deps_assign = "";
-    $deps_list = "";
+    $deps = $this->get_deps_model($model_config);
+    
+    $deps_members = $this->getDepsMembers($deps);
+    $deps_assign = $this->getDepsAssign($deps);
+    $deps_list = $this->getDepsList($deps);
     
     $code = $this->populateTemplate(
       $this->template("ModelTemplate.php"),
+      [
+        "classname" => $classname,
+        "deps_members" => $deps_members,
+        "deps_assign" => $deps_assign,
+        "deps_list" => $deps_list
+      ]
+    );
+    return $code;
+  }
+  
+  private function getCodeMiddleware($classname, $middleware_config) {
+    $deps = $this->get_deps_middleware($middleware_config);
+    
+    $deps_members = $this->getDepsMembers($deps);
+    $deps_assign = $this->getDepsAssign($deps);
+    $deps_list = $this->getDepsList($deps);
+    
+    $tpl_name = "MiddlewareTemplate.php";
+    // default services: [app_init] >>> App_init
+    if ($className == "App_initMiddleware")
+      $tpl_name = "App_initMiddlewareTemplate.php";
+    
+    $code = $this->populateTemplate(
+      $this->template($tpl_name),
       [
         "classname" => $classname,
         "deps_members" => $deps_members,

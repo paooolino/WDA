@@ -9,15 +9,16 @@
 
 namespace WebApp\Middleware;
 
-class Auth {
-  
-  private $app;
-  
-  public function __construct($app) {
-    $this->app = $app;
+class {{classname}} {
+{{deps_members}}
+    
+  public function __construct({{deps_list}}) {
+{{deps_assign}}
   }
   
+  /* === DEVELOPER BEGIN */
   public function __invoke($request, $response, $next) {
     return $next($request, $response);
-  }
+  } 
+  /* === DEVELOPER END */
 }

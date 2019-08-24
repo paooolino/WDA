@@ -38,11 +38,11 @@ $wda->makedir("app");
 file_put_contents("app/dependencies.php", 
   $wda->phpFile(
     $wda->commentLine("Services")
-    . $wda->getDefaultDependenciesServices()
+    //. $wda->getDefaultDependenciesServices()
     . $wda->getCodeDependenciesServices()
     
     . $wda->commentLine("Middlewares")
-    . $wda->getDefaultDependenciesMiddlewares()
+    //. $wda->getDefaultDependenciesMiddlewares()
     . $wda->getCodeDependenciesMiddlewares()
     
     . $wda->commentLine("Controllers")
@@ -70,9 +70,14 @@ $wda->makedir("app/src/Controller");
 $wda->makedir("app/src/Model");
 
 // Middleware: AppInit
-file_put_contents("app/src/Middleware/AppInit.php", $wda->getCodeMiddlewareAppInit());
+//file_put_contents("app/src/Middleware/AppInit.php", $wda->getCodeMiddlewareAppInit());
 // Middleware: Auth
-file_put_contents("app/src/Middleware/Auth.php", $wda->getCodeMiddlewareAuth());
+//file_put_contents("app/src/Middleware/Auth.php", $wda->getCodeMiddlewareAuth());
+// Other middlewares
+$middlewares = $wda->getCodeMiddlewares();
+foreach ($middlewares as $m) {
+  $wda->create_file("app/src/Middleware", $m["classname"] . ".php", $m["code"]);
+}
 
 // Controllers
 $controllers = $wda->getCodeControllers();
@@ -90,8 +95,8 @@ foreach ($models as $m) {
 }
 
 // Services
-$appServiceCode = $wda->getAppServiceCode();
-file_put_contents("app/src/AppService.php", $appServiceCode);
+//$appServiceCode = $wda->getAppServiceCode();
+//file_put_contents("app/src/AppService.php", $appServiceCode);
 
 $services = $wda->getCodeServices();
 foreach ($services as $s) {
