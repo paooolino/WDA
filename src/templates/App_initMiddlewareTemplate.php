@@ -21,7 +21,7 @@ class App_initMiddleware {
     $this->app->baseUrl = $request->getUri()->getBaseUrl();
     $this->app->templateUrl = $this->app->baseUrl 
       . '/templates'
-      . '/' . $this->app->templateName;
+      . '/' . $this->app->getSettings()["templateName"];
       
     return $next($request, $response);
   }

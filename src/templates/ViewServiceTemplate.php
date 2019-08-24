@@ -14,7 +14,7 @@ class ViewService {
     /* === DEVELOPER BEGIN */
     
     // create your instance here
-    $templatePath = __DIR__ . '/../../templates/' . $settings["templateName"];
+    $templatePath = __DIR__ . '/../../templates/' . $app->getSettings()["templateName"];
     return new \Slim\Views\PhpRenderer($templatePath, [
       // Let the router be available in all templates for rapid linking through
       //  $router->pathFor()

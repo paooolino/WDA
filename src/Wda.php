@@ -136,7 +136,7 @@ END_OF_CODE;
     
     $codearr = [];
     foreach ($config as $item => $item_config) {
-      $class_name = ucfirst($item);
+      $class_name = ucfirst($item) . "Middleware";
       $deps = [];
       if (isset($item_config["deps"])) {
         $deps = array_map(function($dep) {
