@@ -565,9 +565,9 @@ END_OF_CODE;
       $tpl_name = "ServiceTemplateFactory.php";
 
     // default services: [app] >>> AppService, [view] >>> ViewService
-    if ($className == "AppService")
+    if ($classname == "AppService")
       $tpl_name = "AppServiceTemplate.php";
-    if ($className == "ViewService")
+    if ($classname == "ViewService")
       $tpl_name = "ViewServiceTemplate.php";
     
     $code = $this->populateTemplate(
@@ -610,7 +610,7 @@ END_OF_CODE;
     
     $tpl_name = "MiddlewareTemplate.php";
     // default services: [app_init] >>> App_init
-    if ($className == "App_initMiddleware")
+    if ($classname == "App_initMiddleware")
       $tpl_name = "App_initMiddlewareTemplate.php";
     
     $code = $this->populateTemplate(
