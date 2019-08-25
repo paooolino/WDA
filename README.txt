@@ -13,5 +13,8 @@ You can use the developer assistant to help keep track of your job.
 How to run tests:
 composer test
 
-
+You can try development process in the sample directory. Compile the application like this
+php ../generatecode.php config.ini www
+cd www
+composer install
 
